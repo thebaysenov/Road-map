@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Product Designer — карта навыков</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f0f11;
+    --bg-card: #17171a;
+    --bg-hover: #1e1e23;
+    --border: rgba(255,255,255,0.07);
+    --border-active: rgba(255,255,255,0.15);
+    --text-primary: #f0f0f2;
+    --text-secondary: #8a8a96;
+    --text-muted: #55555e;
+    --accent: #7c6af7;
+    --accent-light: rgba(124, 106, 247, 0.12);
+    --accent-glow: rgba(124, 106, 247, 0.25);
+    --green: #3ecf8e;
+    --green-light: rgba(62, 207, 142, 0.1);
+    --amber: #f5a623;
+    --amber-light: rgba(245, 166, 35, 0.1);
+    --red: #f56565;
+    --red-light: rgba(245, 101, 101, 0.1);
+    --radius: 12px;
+    --radius-sm: 8px;
+    --font: 'Inter', sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text-primary);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* Header */
+  .header {
+    border-bottom: 1px solid var(--border);
+    padding: 2rem 0 1.5rem;
+    position: sticky;
+    top: 0;
+    background: rgba(15,15,17,0.92);
+    backdrop-filter: blur(12px);
+    z-index: 100;
+  }
+  .header-inner {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .header-left { display: flex; flex-direction: column; gap: 2px; }
+  .header-eyebrow { font-size: 11px; font-weight: 500; color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase; font-family: var(--mono); }
+  .header-title { font-size: 20px; font-weight: 600; color: var(--text-primary); }
+
+  .total-progress-wrap { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; min-width: 180px; }
+  .total-progress-label { font-size: 12px; color: var(--text-secondary); display: flex; justify-content: space-between; width: 100%; }
+  .total-bar { width: 180px; height: 6px; background: rgba(255,255,255,0.08); border-radius: 99px; overflow: hidden; }
+  .total-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), #a78bfa); border-radius: 99px; transition: width 0.5s ease; }
+  .total-pct { font-size: 18px; font-weight: 600; color: var(--accent); font-family: var(--mono); }
+
+  /* Main layout */
+  .main { max-width: 860px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+
+  /* Legend */
+  .legend { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  /* Section */
+  .section { margin-bottom: 1.5rem; }
+  .section-header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 1.1rem 1.25rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    user-select: none;
+  }
+  .section-header:hover { border-color: var(--border-active); background: var(--bg-hover); }
+  .section-header.open { border-radius: var(--radius) var(--radius) 0 0; border-bottom-color: transparent; }
+
+  .section-num { font-family: var(--mono); font-size: 12px; color: var(--text-muted); min-width: 20px; }
+  .section-title { font-size: 15px; font-weight: 500; flex: 1; }
+  .section-meta { display: flex; align-items: center; gap: 10px; }
+  .section-pct { font-family: var(--mono); font-size: 12px; color: var(--text-secondary); min-width: 32px; text-align: right; }
+  .section-bar-wrap { width: 80px; height: 4px; background: rgba(255,255,255,0.08); border-radius: 99px; overflow: hidden; }
+  .section-bar-fill { height: 100%; border-radius: 99px; transition: width 0.4s ease; }
+  .chevron { color: var(--text-muted); font-size: 12px; transition: transform 0.25s; }
+  .section-header.open .chevron { transform: rotate(180deg); }
+
+  /* Body */
+  .section-body {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 var(--radius) var(--radius);
+    overflow: hidden;
+    display: none;
+  }
+  .section-body.open { display: block; }
+
+  /* Requirement item */
+  .req-item { border-bottom: 1px solid var(--border); padding: 1.25rem 1.25rem 1.25rem 1.5rem; }
+  .req-item:last-child { border-bottom: none; }
+
+  .req-top { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 0.6rem; }
+  .req-status { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 6px; }
+  .req-content { flex: 1; }
+  .req-title-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
+  .req-name { font-size: 14px; font-weight: 500; }
+  .badge { font-size: 10px; font-weight: 500; padding: 2px 7px; border-radius: 4px; white-space: nowrap; font-family: var(--mono); }
+  .badge-have { background: var(--green-light); color: var(--green); }
+  .badge-grow { background: var(--amber-light); color: var(--amber); }
+  .badge-gap { background: var(--red-light); color: var(--red); }
+
+  .req-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.55; margin-bottom: 0.75rem; }
+
+  /* Subtasks */
+  .subtasks { display: flex; flex-direction: column; gap: 5px; margin-bottom: 0.75rem; }
+  .subtask { display: flex; align-items: flex-start; gap: 8px; }
+  .subtask-check {
+    width: 16px; height: 16px; border-radius: 4px; border: 1.5px solid var(--border-active);
+    flex-shrink: 0; margin-top: 2px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s, border-color 0.2s; background: transparent;
+  }
+  .subtask-check.checked { background: var(--accent); border-color: var(--accent); }
+  .subtask-check.checked::after { content: '✓'; font-size: 10px; color: #fff; font-weight: 600; }
+  .subtask-label { font-size: 12px; color: var(--text-secondary); line-height: 1.5; cursor: pointer; }
+  .subtask-label.checked { color: var(--text-muted); text-decoration: line-through; }
+
+  /* Progress bar per item */
+  .req-progress { display: flex; align-items: center; gap: 8px; margin-bottom: 0.75rem; }
+  .req-bar-wrap { flex: 1; height: 3px; background: rgba(255,255,255,0.07); border-radius: 99px; overflow: hidden; }
+  .req-bar-fill { height: 100%; border-radius: 99px; transition: width 0.3s ease; }
+  .req-bar-pct { font-family: var(--mono); font-size: 11px; color: var(--text-muted); min-width: 28px; text-align: right; }
+
+  /* Links */
+  .links-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.07em; font-family: var(--mono); margin-bottom: 5px; }
+  .links { display: flex; flex-wrap: wrap; gap: 6px; }
+  .link-tag {
+    font-size: 12px; padding: 4px 10px; border-radius: var(--radius-sm);
+    border: 1px solid var(--border); color: var(--text-secondary);
+    text-decoration: none; transition: border-color 0.2s, color 0.2s, background 0.2s;
+    display: inline-flex; align-items: center; gap: 5px;
+  }
+  .link-tag:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+  .link-tag::before { content: '↗'; font-size: 10px; }
+
+  /* Note from user */
+  .user-note {
+    background: var(--accent-light);
+    border: 1px solid var(--accent-glow);
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    font-size: 12px;
+    color: #a78bfa;
+    margin-bottom: 0.75rem;
+    display: flex; gap: 6px; align-items: flex-start;
+  }
+  .user-note-icon { flex-shrink: 0; margin-top: 1px; }
+
+  /* Reset button */
+  .reset-btn {
+    background: transparent; border: 1px solid var(--border); border-radius: var(--radius-sm);
+    color: var(--text-muted); font-size: 12px; padding: 6px 12px; cursor: pointer;
+    font-family: var(--font); transition: all 0.2s;
+  }
+  .reset-btn:hover { border-color: var(--red); color: var(--red); }
+
+  @media (max-width: 600px) {
+    .header-inner { flex-direction: column; align-items: flex-start; }
+    .total-progress-wrap { align-items: flex-start; }
+    .section-bar-wrap { width: 50px; }
+    .req-title-row { gap: 6px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <div class="header-left">
+      <span class="header-eyebrow">Product Designer · Roadmap</span>
+      <span class="header-title">Карта навыков для международного рынка</span>
+    </div>
+    <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+      <div class="total-progress-wrap">
+        <div class="total-progress-label">
+          <span>Общий прогресс</span>
+          <span class="total-pct" id="totalPct">0%</span>
+        </div>
+        <div class="total-bar"><div class="total-bar-fill" id="totalBar" style="width:0%"></div></div>
+      </div>
+      <button class="reset-btn" onclick="resetAll()">Сбросить</button>
+    </div>
+  </div>
+</header>
+
+<main class="main">
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div> Уже есть</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--amber)"></div> Развить</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div> Освоить</div>
+  </div>
+
+  <div id="sections"></div>
+</main>
+
+<script>
+const data = [
+  {
+    id: "tools",
+    title: "Инструменты и ремесло",
+    color: "#7c6af7",
+    items: [
+      {
+        id: "figma",
+        status: "have",
+        name: "Figma — продвинутый уровень",
+        desc: "Основной инструмент продуктового дизайнера. Компании ждут уверенной работы с компонентами, auto-layout, вариантами и командным процессом.",
+        note: null,
+        subtasks: [
+          "Компоненты и variants — уметь строить переиспользуемые UI-блоки",
+          "Auto-layout — адаптивные макеты без ручного выравнивания",
+          "Prototyping — интерактивные прототипы с переходами и состояниями",
+          "Dev Mode — правильный handoff разработчикам",
+          "Collaborative review — комментарии, версионность, работа в команде",
+          "Figma AI / плагины — ускорить рутинные задачи"
+        ],
+        links: [
+          { label: "Figma Academy", url: "https://help.figma.com/hc/en-us/categories/360002051613-Figma-design" },
+          { label: "Figma YouTube", url: "https://www.youtube.com/@Figma" },
+          { label: "Figma Community", url: "https://www.figma.com/community" }
+        ]
+      },
+      {
+        id: "design_system",
+        status: "grow",
+        name: "Дизайн-система",
+        desc: "Требуется в 80% вакансий middle+. Нужно уметь не только работать с готовой системой, но и строить компонентную библиотеку с нуля.",
+        note: "Из твоих заметок: «Как читать дашборды» — понимание дизайн-систем напрямую связано с тем, как строится логика продукта.",
+        subtasks: [
+          "Токены — цвета, типографика, отступы как переменные",
+          "Атомарный подход — atoms → molecules → organisms",
+          "Документация компонентов — описание использования и правил",
+          "Управление версиями дизайн-системы",
+          "Accessibility в системе — WCAG 2.1, контрастность, размеры",
+          "Синхронизация с разработкой через токены"
+        ],
+        links: [
+          { label: "Design Systems 101 (NN/g)", url: "https://www.nngroup.com/articles/design-systems-101/" },
+          { label: "Figma: Building Design Systems", url: "https://www.youtube.com/watch?v=EK-pHkc5EL4" },
+          { label: "design.systems", url: "https://www.designsystems.com/" },
+          { label: "Supernova.io — документация", url: "https://www.supernova.io/" }
+        ]
+      },
+      {
+        id: "ai_tools",
+        status: "gap",
+        name: "AI-инструменты в дизайне",
+        desc: "В вакансиях 2026 года всё чаще появляется требование AI-First Proficiency. Компании хотят дизайнеров, которые интегрируют AI в процесс, а не просто знают о его существовании.",
+        note: "Из вакансии Miro: «We're building for an AI-first future — we're looking for designers who aren't just using AI, they're mastering it».",
+        subtasks: [
+          "Midjourney / Ideogram — генерация референсов и концептов",
+          "AI-плагины Figma (Magician, Diagram AI) — ускорение прототипирования",
+          "v0 by Vercel — быстрые UI-концепты",
+          "Cursor — понимание как AI помогает в разработке (коммуникация с dev)",
+          "ChatGPT / Claude — генерация UX-текстов, анализ исследований",
+          "Prompt-инжиниринг для дизайн-задач"
+        ],
+        links: [
+          { label: "AI for Designers (Google)", url: "https://design.google/library/ai-principles" },
+          { label: "Magician для Figma", url: "https://magician.design/" },
+          { label: "v0.dev", url: "https://v0.dev/" },
+          { label: "Future of UX with AI (NN/g)", url: "https://www.nngroup.com/articles/ai-ux-getting-started/" }
+        ]
+      }
+    ]
+  },
+  {
+    id: "ux",
+    title: "UX-процесс и исследования",
+    color: "#3ecf8e",
+    items: [
+      {
+        id: "research",
+        status: "have",
+        name: "Пользовательские исследования",
+        desc: "Интервью и опросы уже есть в опыте. Нужно усилить синтез данных и оформление инсайтов в выводы, понятные продуктовой команде.",
+        note: "Из твоих заметок: «Формулирование проблем в продуктовом дизайне» — именно на исследованиях строится правильная формулировка задачи.",
+        subtasks: [
+          "Структурированное глубинное интервью — скрипт, рекрутинг, анализ",
+          "Синтез — Affinity Map, Insight Statements, Job Stories",
+          "Jobs To Be Done (JTBD) — фреймворк формулирования потребностей",
+          "Survey design — правильные вопросы, без leading bias",
+          "Desk research — конкурентный анализ, бенчмаркинг",
+          "Оформление research report для стейкхолдеров"
+        ],
+        links: [
+          { label: "JTBD (Intercom)", url: "https://www.intercom.com/blog/the-jobs-to-be-done-theory/" },
+          { label: "User Interviews — гайд NN/g", url: "https://www.nngroup.com/articles/user-interviews/" },
+          { label: "UX Research плейлист", url: "https://www.youtube.com/@NNgroup" },
+          { label: "Dovetail — синтез исследований", url: "https://dovetail.com/ux-research/" }
+        ]
+      },
+      {
+        id: "usability",
+        status: "grow",
+        name: "Usability-тестирование",
+        desc: "Базовые тесты есть. Нужно уметь самостоятельно планировать, проводить и синтезировать результаты — это ключевой навык для продуктового дизайнера.",
+        note: null,
+        subtasks: [
+          "Moderated usability test — фасилитация сессии, нейтральные вопросы",
+          "Unmoderated тесты — Maze, Useberry, UserTesting",
+          "Heuristic evaluation по принципам Нильсена",
+          "5-second test, first-click test — быстрые методы",
+          "Synthesizing findings — severity ratings, top issues",
+          "Presenting results команде — actionable recommendations"
+        ],
+        links: [
+          { label: "Maze — инструмент тестирования", url: "https://maze.co/guides/usability-testing/" },
+          { label: "10 эвристик Нильсена", url: "https://www.nngroup.com/articles/ten-usability-heuristics/" },
+          { label: "Usability Testing 101 (NN/g)", url: "https://www.nngroup.com/articles/usability-testing-101/" },
+          { label: "Useberry", url: "https://www.useberry.com/" }
+        ]
+      },
+      {
+        id: "ia",
+        status: "grow",
+        name: "Information Architecture",
+        desc: "Структура продукта, навигация, таксономия контента. Часто упоминается в вакансиях middle+ и напрямую связана с тем, насколько продуктовым является дизайнер.",
+        note: null,
+        subtasks: [
+          "Card sorting — открытый и закрытый, синтез результатов",
+          "Tree testing — проверка навигационной структуры",
+          "Sitemap — визуализация архитектуры продукта",
+          "Navigation patterns — tabs, sidebar, breadcrumbs, когда что применять",
+          "Mental models — как пользователи мысленно организуют информацию",
+          "Content inventory — аудит существующей структуры"
+        ],
+        links: [
+          { label: "IA Fundamentals (NN/g)", url: "https://www.nngroup.com/articles/ia-vs-navigation/" },
+          { label: "Optimal Workshop (card sort)", url: "https://www.optimalworkshop.com/" },
+          { label: "UX Companion — IA", url: "https://uxcompanion.com/" }
+        ]
+      },
+      {
+        id: "flows",
+        status: "have",
+        name: "Флоу, вайрфреймы, прототипы",
+        desc: "Стандарт для middle-уровня. Нужно усилить качество документирования решений и связь прототипов с реальными сценариями пользователей.",
+        note: null,
+        subtasks: [
+          "User flow — от задачи пользователя до полного сценария",
+          "Low-fi wireframes — быстрая визуализация идей без деталей",
+          "High-fi прототипы — для тестирования и презентации",
+          "Micro-interactions — переходы, состояния, анимации",
+          "Edge cases — пустые состояния, ошибки, загрузка",
+          "Handoff specs — описание поведения для разработчиков"
+        ],
+        links: [
+          { label: "Prototyping в Figma", url: "https://help.figma.com/hc/en-us/articles/360040314193-Guide-to-prototyping-in-Figma" },
+          { label: "User Flow Design (Medium)", url: "https://uxdesign.cc/stop-designing-interfaces-start-designing-user-flows-3989eb47e3f0" }
+        ]
+      }
+    ]
+  },
+  {
+    id: "product",
+    title: "Продуктовое мышление",
+    color: "#f5a623",
+    items: [
+      {
+        id: "problem",
+        status: "gap",
+        name: "Формулирование проблемы",
+        desc: "Продуктовый дизайнер не берёт задачу как данность — он участвует в её определении. Умение задавать правильные вопросы и переформулировать задачи через потребности пользователя.",
+        note: "Из твоих заметок: «Формулирование проблем в продуктовом дизайне» — это первый пункт твоего собственного списка. Правильная формулировка проблемы — половина решения.",
+        subtasks: [
+          "Problem statement — формат «Пользователь хочет..., потому что..., но...»",
+          "How Might We — переформулирование в возможности",
+          "Five Whys — докопаться до корневой причины",
+          "Opportunity trees — визуализация пространства решений",
+          "Deciding what NOT to solve — приоритизация проблем",
+          "Презентация проблемы PM и стейкхолдерам"
+        ],
+        links: [
+          { label: "Problem Framing (IDEO)", url: "https://www.designkit.org/methods/define-your-challenge" },
+          { label: "How Might We (IDEO)", url: "https://www.designkit.org/methods/how-might-we" },
+          { label: "Opportunity Solution Tree", url: "https://www.producttalk.org/opportunity-solution-tree/" },
+          { label: "Double Diamond (Design Council)", url: "https://www.designcouncil.org.uk/our-resources/the-double-diamond/" }
+        ]
+      },
+      {
+        id: "frameworks",
+        status: "gap",
+        name: "Продуктовые фреймворки",
+        desc: "Язык общения с PM и стейкхолдерами. Без этих инструментов сложно участвовать в продуктовых дискуссиях и обосновывать решения на уровне бизнеса.",
+        note: "Из твоих заметок: «Продуктовые фреймворки: Jobs to be Done, North Star Metric, Impact/Effort» — ты уже зафиксировал нужный список.",
+        subtasks: [
+          "Jobs To Be Done (JTBD) — формулирование потребностей через задачи",
+          "North Star Metric — главная метрика продукта и как к ней прийти",
+          "Impact/Effort matrix — приоритизация гипотез",
+          "Double Diamond — фреймворк процесса дизайна",
+          "MoSCoW — must have / should have / could have / won't have",
+          "OKR — как дизайн-работа вписывается в цели компании"
+        ],
+        links: [
+          { label: "JTBD (Intercom book, бесплатно)", url: "https://www.intercom.com/resources/books/intercom-jobs-to-be-done" },
+          { label: "North Star Framework (Amplitude)", url: "https://amplitude.com/north-star" },
+          { label: "Impact/Effort (UX Collective)", url: "https://uxdesign.cc/how-to-prioritize-ux-improvements-using-the-impact-effort-matrix-d8b6b0b71d1b" },
+          { label: "Double Diamond Guide", url: "https://www.designcouncil.org.uk/our-resources/the-double-diamond/" }
+        ]
+      },
+      {
+        id: "metrics",
+        status: "gap",
+        name: "Метрики и аналитика",
+        desc: "Ключевой пробел. Продуктовый дизайнер должен уметь обосновывать решения данными, читать воронки и понимать, как дизайн влияет на бизнес-метрики.",
+        note: "Из твоих заметок: «Метрики и аналитика: Retention, DAU/MAU, Conversion Rate, Churn», «Как читать дашборды (Amplitude, Mixpanel, Google Analytics)», «Как дизайн-решение влияет на цифры» — отличный список, это именно то, что нужно.",
+        subtasks: [
+          "Retention D1/D7/D30 — что это и как влияет дизайн",
+          "DAU/MAU ratio — здоровье продукта",
+          "Conversion Rate — по шагам флоу, воронки",
+          "Churn — анализ точек отказа",
+          "Drop-off rate — на каком экране уходят и почему",
+          "Time on task — UX-метрика эффективности",
+          "Читать дашборды Amplitude — воронки, retention, пути",
+          "Mixpanel — event-аналитика, когорты",
+          "Google Analytics 4 — поведение на сайте",
+          "Hotjar / Microsoft Clarity — тепловые карты (начать отсюда!)",
+          "A/B тест — понимать логику контрольной и тестовой групп",
+          "Пройти курс по продуктовой аналитике"
+        ],
+        links: [
+          { label: "Amplitude Academy (бесплатно)", url: "https://academy.amplitude.com/" },
+          { label: "Microsoft Clarity (бесплатно)", url: "https://clarity.microsoft.com/" },
+          { label: "Mixpanel для дизайнеров", url: "https://mixpanel.com/blog/ux-design-metrics/" },
+          { label: "Google Analytics 4 (Google)", url: "https://skillshop.withgoogle.com/" },
+          { label: "Productstar — аналитика", url: "https://productstar.ru/" },
+          { label: "Reforge Foundations", url: "https://www.reforge.com/foundations" }
+        ]
+      },
+      {
+        id: "business",
+        status: "gap",
+        name: "Бизнес-контекст и стратегия",
+        desc: "Понимать бизнес-цели за задачей. Связывать дизайн-решения с бизнес-результатом — это то, что отличает middle от senior в международных компаниях.",
+        note: null,
+        subtasks: [
+          "Unit economics — CAC, LTV, как дизайн влияет на них",
+          "Business model canvas — понимать модель продукта",
+          "Конкурентный анализ — market positioning, differentiation",
+          "Читать product brief и задавать правильные вопросы",
+          "ROI дизайн-решений — обосновывать приоритеты через деньги",
+          "Участие в product discovery — не только delivery"
+        ],
+        links: [
+          { label: "Business Model Canvas", url: "https://www.strategyzer.com/canvas/business-model-canvas" },
+          { label: "Product Discovery (Teresa Torres)", url: "https://www.producttalk.org/2021/08/product-discovery/" },
+          { label: "Design for Business Impact", url: "https://www.nngroup.com/articles/design-business-value/" }
+        ]
+      },
+      {
+        id: "collab",
+        status: "grow",
+        name: "Работа с PM и разработчиками",
+        desc: "Участие в спринтах, планировании, дизайн-ревью, хендофф. Продуктовый дизайнер — часть кросс-функциональной команды, а не исполнитель задач.",
+        note: null,
+        subtasks: [
+          "Agile / Scrum для дизайнера — спринты, ретро, daily",
+          "Design critique — давать и получать фидбек продуктивно",
+          "Design review с разработчиками — проверка имплементации",
+          "Writing design decisions — документировать «почему»",
+          "Working with PM — как выстроить рабочие отношения",
+          "Jira / Linear / Notion — трекинг задач и документация"
+        ],
+        links: [
+          { label: "Agile для дизайнеров (NN/g)", url: "https://www.nngroup.com/articles/agile-design/" },
+          { label: "Design Critique Guide", url: "https://www.nngroup.com/articles/design-critiques/" },
+          { label: "Writing Design Decisions", url: "https://uxdesign.cc/how-to-document-design-decisions-3d4e3a8c4c3e" }
+        ]
+      }
+    ]
+  },
+  {
+    id: "portfolio",
+    title: "Портфолио и самопрезентация",
+    color: "#f56565",
+    items: [
+      {
+        id: "cases",
+        status: "grow",
+        name: "Продуктовые кейсы",
+        desc: "Самый важный актив. Нужно переупаковать существующие проекты в продуктовый формат: проблема → исследование → гипотеза → решение → результат в цифрах.",
+        note: "Из твоих заметок: «Как дизайн-решение влияет на цифры» — именно это нужно показывать в кейсах. 2–3 сильных кейса с метриками важнее, чем 10 красивых картинок.",
+        subtasks: [
+          "Структура кейса: context → problem → process → solution → impact",
+          "Переписать описание через метрики (что улучшилось в цифрах)",
+          "Показать процесс, не только финальный экран",
+          "Добавить решённые trade-offs и альтернативы",
+          "Case study на английском языке (хотя бы 1)",
+          "Видео-walk-through прототипа (3–5 мин.)",
+          "PDF-версия кейса для отклика без ссылки"
+        ],
+        links: [
+          { label: "How to Write a Case Study (UX Collective)", url: "https://uxdesign.cc/how-to-write-a-ux-case-study-that-will-get-you-hired-7a5da45a3b6e" },
+          { label: "Bestfolios — примеры портфолио", url: "https://www.bestfolios.com/home" },
+          { label: "Notion — шаблон кейса", url: "https://www.notion.so/templates/ux-case-study" }
+        ]
+      },
+      {
+        id: "linkedin",
+        status: "grow",
+        name: "LinkedIn — оптимизация",
+        desc: "Нормальное портфолио + LinkedIn уже есть — хорошая база. Нужно оптимизировать под международный поиск: ключевые слова, About на английском, кейсы в Featured.",
+        note: "Из твоих заметок: «Улучшение LinkedIn» — в списке приоритетов. Это быстрая победа: 2–3 часа работы значительно увеличивают видимость.",
+        subtasks: [
+          "Headline: «Product Designer | UX/UI | Figma | Remote»",
+          "About section на английском (150–200 слов)",
+          "Featured — закрепить ссылку на портфолио и лучший кейс",
+          "Experience — переписать под продуктовый язык с метриками",
+          "Skills — добавить Figma, User Research, Design Systems, Prototyping",
+          "Open to Work — включить с нужными параметрами",
+          "Активность — 2–3 поста в месяц о дизайн-процессе"
+        ],
+        links: [
+          { label: "LinkedIn Designer Profile Tips", url: "https://www.linkedin.com/pulse/how-optimize-your-linkedin-profile-ux-designer-/" },
+          { label: "LinkedIn для дизайнеров (Ютуб)", url: "https://www.youtube.com/results?search_query=linkedin+profile+ux+designer+2024" }
+        ]
+      },
+      {
+        id: "self_en",
+        status: "gap",
+        name: "Self-presentation на английском",
+        desc: "Уметь рассказать о своей работе на английском за 3–5 минут. Нужно даже в русскоязычных международных командах — для первичного скрининга и интервью.",
+        note: "Из твоих заметок: «Английский язык: 20–30 мин. в день, фокус на рабочую лексику дизайнера (приложение Anki +)» — правильная стратегия, главное — регулярность.",
+        subtasks: [
+          "«Tell me about yourself» — подготовить 2-минутный питч",
+          "Описание кейса на EN по структуре: situation → task → action → result",
+          "Дизайн-лексика: 100 ключевых слов (wireframe, affordance, conversion...)",
+          "Anki-колода с дизайн-терминами — 20 мин./день",
+          "Shadowing — повторение речи носителей (подкасты Design Details, NN/g)",
+          "Mock interview на EN с ChatGPT или HiNative",
+          "Английский для дизайнера — уровень B1 к дате поиска работы"
+        ],
+        links: [
+          { label: "Design Details Podcast (EN)", url: "https://designdetails.fm/" },
+          { label: "Anki — карточки для слов", url: "https://apps.ankiweb.net/" },
+          { label: "HiNative — практика с носителями", url: "https://hinative.com/" },
+          { label: "BBC Learning English", url: "https://www.bbc.co.uk/learningenglish/" }
+        ]
+      }
+    ]
+  },
+  {
+    id: "softskills",
+    title: "Коммуникация и soft skills",
+    color: "#a78bfa",
+    items: [
+      {
+        id: "present",
+        status: "grow",
+        name: "Презентация дизайн-решений",
+        desc: "Аргументировать «почему» за каждым решением. В 90% вакансий middle+ требуют умения чётко объяснять дизайн-решения перед командой и стейкхолдерами.",
+        note: null,
+        subtasks: [
+          "Структура презентации: проблема → контекст → решение → обоснование",
+          "Отвечать на «почему именно так, а не иначе»",
+          "Работа с фидбеком — принимать критику и отстаивать решения",
+          "Storytelling — подача через историю пользователя",
+          "Визуализация процесса — как дойти до решения",
+          "Presentation skills — темп, структура, визуальный фокус"
+        ],
+        links: [
+          { label: "Presenting Design Work (NN/g)", url: "https://www.nngroup.com/articles/presenting-design-work/" },
+          { label: "Design Storytelling", url: "https://uxdesign.cc/design-storytelling-how-to-present-your-work-6a3b8e3d2b4a" }
+        ]
+      },
+      {
+        id: "async",
+        status: "grow",
+        name: "Async-коммуникация на удалёнке",
+        desc: "Критично для полностью удалённых команд. Умение писать чёткие обновления, документировать решения и работать асинхронно — часто важнее синхронных встреч.",
+        note: null,
+        subtasks: [
+          "Writing design decisions в Notion / Confluence",
+          "Async design review — Loom-видео вместо встречи",
+          "Status updates — кратко, структурировано, без потери контекста",
+          "Slack-этикет в международных командах",
+          "Documentation culture — «если не записано, не существует»",
+          "Remote работа best practices — timezone overlap, async-first"
+        ],
+        links: [
+          { label: "Async Communication Guide", url: "https://www.notion.com/templates/remote-work" },
+          { label: "Loom — async видео", url: "https://www.loom.com/" },
+          { label: "Remote Work Handbook (GitLab)", url: "https://handbook.gitlab.com/handbook/company/culture/all-remote/" }
+        ]
+      }
+    ]
+  }
+];
+
+const STORAGE_KEY = 'pd_roadmap_v2';
+
+function loadState() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch { return {}; }
+}
+function saveState(state) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
+}
+
+let state = loadState();
+
+function getSubtaskKey(sectionId, itemId, idx) {
+  return `${sectionId}__${itemId}__${idx}`;
+}
+
+function countChecked(sectionId, itemId, count) {
+  let n = 0;
+  for (let i = 0; i < count; i++) {
+    if (state[getSubtaskKey(sectionId, itemId, i)]) n++;
+  }
+  return n;
+}
+
+function totalAll() {
+  let total = 0, done = 0;
+  data.forEach(sec => {
+    sec.items.forEach(item => {
+      total += item.subtasks.length;
+      done += countChecked(sec.id, item.id, item.subtasks.length);
+    });
+  });
+  return { total, done };
+}
+
+function updateTotals() {
+  const { total, done } = totalAll();
+  const pct = total ? Math.round(done / total * 100) : 0;
+  document.getElementById('totalPct').textContent = pct + '%';
+  document.getElementById('totalBar').style.width = pct + '%';
+}
+
+function getStatusBadge(status) {
+  if (status === 'have') return '<span class="badge badge-have">есть</span>';
+  if (status === 'grow') return '<span class="badge badge-grow">развить</span>';
+  return '<span class="badge badge-gap">освоить</span>';
+}
+function getStatusColor(status) {
+  if (status === 'have') return 'var(--green)';
+  if (status === 'grow') return 'var(--amber)';
+  return 'var(--red)';
+}
+
+function renderSection(sec) {
+  const sectionDiv = document.createElement('div');
+  sectionDiv.className = 'section';
+  sectionDiv.id = 'sec_' + sec.id;
+
+  let totalItems = 0, doneItems = 0;
+  sec.items.forEach(item => {
+    totalItems += item.subtasks.length;
+    doneItems += countChecked(sec.id, item.id, item.subtasks.length);
+  });
+  const secPct = totalItems ? Math.round(doneItems / totalItems * 100) : 0;
+
+  const header = document.createElement('div');
+  header.className = 'section-header';
+  header.innerHTML = `
+    <span class="section-num">${String(data.indexOf(sec) + 1).padStart(2,'0')}</span>
+    <span class="section-title">${sec.title}</span>
+    <span class="section-meta">
+      <span class="section-pct" id="secpct_${sec.id}">${secPct}%</span>
+      <div class="section-bar-wrap">
+        <div class="section-bar-fill" id="secbar_${sec.id}" style="width:${secPct}%; background:${sec.color}"></div>
+      </div>
+      <span class="chevron">▼</span>
+    </span>
+  `;
+  header.addEventListener('click', () => {
+    header.classList.toggle('open');
+    body.classList.toggle('open');
+  });
+
+  const body = document.createElement('div');
+  body.className = 'section-body';
+
+  sec.items.forEach(item => {
+    const checked = countChecked(sec.id, item.id, item.subtasks.length);
+    const pct = item.subtasks.length ? Math.round(checked / item.subtasks.length * 100) : 0;
+    const barColor = getStatusColor(item.status);
+
+    const itemDiv = document.createElement('div');
+    itemDiv.className = 'req-item';
+    itemDiv.id = `item_${sec.id}_${item.id}`;
+
+    let noteHtml = '';
+    if (item.note) {
+      noteHtml = `<div class="user-note"><span class="user-note-icon">✏️</span><span>${item.note}</span></div>`;
+    }
+
+    let subtasksHtml = item.subtasks.map((st, idx) => {
+      const key = getSubtaskKey(sec.id, item.id, idx);
+      const isChecked = !!state[key];
+      return `<div class="subtask">
+        <div class="subtask-check${isChecked ? ' checked' : ''}" data-key="${key}" data-sec="${sec.id}" data-item="${item.id}"></div>
+        <span class="subtask-label${isChecked ? ' checked' : ''}" data-key="${key}">${st}</span>
+      </div>`;
+    }).join('');
+
+    let linksHtml = item.links.map(l =>
+      `<a class="link-tag" href="${l.url}" target="_blank" rel="noopener">${l.label}</a>`
+    ).join('');
+
+    itemDiv.innerHTML = `
+      <div class="req-top">
+        <div class="req-status" style="background:${barColor}"></div>
+        <div class="req-content">
+          <div class="req-title-row">
+            <span class="req-name">${item.name}</span>
+            ${getStatusBadge(item.status)}
+          </div>
+          <p class="req-desc">${item.desc}</p>
+          ${noteHtml}
+          <div class="req-progress">
+            <div class="req-bar-wrap"><div class="req-bar-fill" id="bar_${sec.id}_${item.id}" style="width:${pct}%; background:${barColor}"></div></div>
+            <span class="req-bar-pct" id="pct_${sec.id}_${item.id}">${pct}%</span>
+          </div>
+          <div class="subtasks">${subtasksHtml}</div>
+          <div class="links-label">Материалы для изучения</div>
+          <div class="links">${linksHtml}</div>
+        </div>
+      </div>
+    `;
+
+    body.appendChild(itemDiv);
+  });
+
+  body.addEventListener('click', (e) => {
+    const check = e.target.closest('.subtask-check');
+    const label = e.target.closest('.subtask-label');
+    const key = check?.dataset.key || label?.dataset.key;
+    if (!key) return;
+
+    const checkEl = body.querySelector(`.subtask-check[data-key="${key}"]`);
+    const labelEl = body.querySelector(`.subtask-label[data-key="${key}"]`);
+    if (!checkEl) return;
+
+    const secId = checkEl.dataset.sec;
+    const itemId = checkEl.dataset.item;
+
+    state[key] = !state[key];
+    saveState(state);
+
+    checkEl.classList.toggle('checked', state[key]);
+    labelEl.classList.toggle('checked', state[key]);
+
+    // update item bar
+    const secObj = data.find(s => s.id === secId);
+    const itemObj = secObj?.items.find(i => i.id === itemId);
+    if (itemObj) {
+      const c = countChecked(secId, itemId, itemObj.subtasks.length);
+      const p = itemObj.subtasks.length ? Math.round(c / itemObj.subtasks.length * 100) : 0;
+      document.getElementById(`bar_${secId}_${itemId}`).style.width = p + '%';
+      document.getElementById(`pct_${secId}_${itemId}`).textContent = p + '%';
+    }
+
+    // update section bar
+    if (secObj) {
+      let tot = 0, dn = 0;
+      secObj.items.forEach(it => { tot += it.subtasks.length; dn += countChecked(secId, it.id, it.subtasks.length); });
+      const sp = tot ? Math.round(dn / tot * 100) : 0;
+      document.getElementById(`secbar_${secId}`).style.width = sp + '%';
+      document.getElementById(`secpct_${secId}`).textContent = sp + '%';
+    }
+
+    updateTotals();
+  });
+
+  sectionDiv.appendChild(header);
+  sectionDiv.appendChild(body);
+  return sectionDiv;
+}
+
+function resetAll() {
+  if (!confirm('Сбросить весь прогресс?')) return;
+  state = {};
+  saveState(state);
+  document.getElementById('sections').innerHTML = '';
+  init();
+}
+
+function init() {
+  const container = document.getElementById('sections');
+  data.forEach(sec => container.appendChild(renderSection(sec)));
+  updateTotals();
+}
+
+init();
+</script>
+</body>
+</html>
